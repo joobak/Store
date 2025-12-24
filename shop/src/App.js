@@ -1,17 +1,18 @@
+import { BrowserRouter } from 'react-router-dom';
 import { useState } from 'react';
 import './App.css';
-import SearchBar from './components/SearchBar';
+
+import Home from './components/Home';
 import Products from './components/Products';
 import ProductDetail from './components/ProductDetail';
 import Login from './components/Login';
-import Cart from './components/Cart'; // ⭐ 추가
+import Cart from './components/Cart';
 
 function App() {
   const [keyword, setKeyword] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isLoginPage, setIsLoginPage] = useState(false);
 
-  // ⭐ 장바구니
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
 
@@ -22,11 +23,9 @@ function App() {
     setSelectedProduct(null);
   };
 
-  // ⭐ 장바구니 추가 함수
   const addToCart = (product) => {
     setCart((prev) => {
       const exists = prev.find((item) => item.id === product.id);
-
       if (exists) {
         return prev.map((item) =>
           item.id === product.id
@@ -34,81 +33,78 @@ function App() {
             : item
         );
       }
-
       return [...prev, { ...product, quantity: 1 }];
     });
   };
 
   return (
-    <div className="App">
+    <BrowserRouter>
+      <div className="App">
 
-      {/* 🔐 로그인 화면 */}
-      {isLoginPage && (
-        <Login
-          onEnter={() => setIsLoginPage(false)}
-          onClose={() => setIsLoginPage(false)}
-        />
-      )}
+        {/* 🔐 로그인 */}
+        {isLoginPage && (
+          <Login
+            onEnter={() => setIsLoginPage(false)}
+            onClose={() => setIsLoginPage(false)}
+          />
+        )}
 
-      {!isLoginPage && (
-        <>
-          {/* ⭐ 상단 카테고리 */}
-          <div className="category-bar-fixed">
+        {!isLoginPage && (
+          <>
+            {/* 상단 카테고리 */}
+            <div className="category-bar-fixed">
+              <div className="category-center">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    className="category-button"
+                    onClick={() => handleSearch(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
 
-            <div className="category-center">
-              {categories.map((cat) => (
+              <div className="category-right">
                 <button
-                  key={cat}
-                  className="category-button"
-                  onClick={() => handleSearch(cat)}
+                  className="category-button login-btn"
+                  onClick={() => setIsLoginPage(true)}
                 >
-                  {cat}
+                  로그인
                 </button>
-              ))}
+              </div>
             </div>
 
-            <div className="category-right">
-              <button
-                className="category-button login-btn"
-                onClick={() => setIsLoginPage(true)}
-              >
-                로그인
-              </button>
-            </div>
-          </div>
+            {/* 본문 */}
+            {showCart ? (
+              <Cart
+                cart={cart}
+                setCart={setCart}
+                onBack={() => setShowCart(false)}
+              />
+            ) : selectedProduct ? (
+              <ProductDetail
+                product={selectedProduct}
+                onBack={() => setSelectedProduct(null)}
+                onAddToCart={addToCart}
+                onGoCart={() => setShowCart(true)}
+              />
+            ) : (
+              <>
+                {/* ✅ 메인 슬라이더 */}
+                <Home />
 
-          {/* ⭐ 장바구니 페이지 */}
-          {showCart ? (
-            <Cart
-              cart={cart}
-              setCart={setCart}
-              onBack={() => setShowCart(false)}
-            />
-          ) : !selectedProduct ? (
-            <div className="main-content">
-              <h1>2526 Season</h1>
-              <p>Board Market</p>
-
-              <SearchBar onSearch={handleSearch} />
-
-              {keyword && (
+                {/* ✅ 메인 아래 데크 상품 */}
                 <Products
-                  keyword={keyword}
+                  keyword={keyword || '데크'}
                   onSelectProduct={setSelectedProduct}
                 />
-              )}
-            </div>
-          ) : (
-            <ProductDetail
-              product={selectedProduct}
-              onBack={() => setSelectedProduct(null)}
-              onAddToCart={addToCart}     // ⭐ 추가
-              onGoCart={() => setShowCart(true)} // ⭐ 추가
-            />
-          )}
-        </>
-      )}
-    </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </BrowserRouter>
   );
 }
 
